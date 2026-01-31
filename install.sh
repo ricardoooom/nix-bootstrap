@@ -108,7 +108,8 @@ fi
 if [ -d "$TARGET_DIR" ]; then
   log "Repository exists. Pulling latest..."
   cd "$TARGET_DIR"
-  git pull
+  current_branch=$(git rev-parse --abbrev-ref HEAD)
+  git pull --force origin "$current_branch":"$current_branch"
 else
   log "Cloning repository..."
   git clone "$REPO_URL" "$TARGET_DIR"
