@@ -26,23 +26,8 @@ error() { echo -e "${RED}[ERROR]${NC} $1"; exit 1; }
 OS="$(uname -s)"
 ARCH="$(uname -m)"
 log "Detected System: $OS ($ARCH)"
-
-if [ "$OS" == "Darwin" ]; then
-  if [ "$ARCH" == "arm64" ]; then
-    FLAKE_HOST="macos-apple"
-    log "🍎 Apple Silicon detected. Selecting flake: .#${FLAKE_HOST}"
-  elif [ "$ARCH" == "x86_64" ]; then
-    FLAKE_HOST="macos-intel"
-    log "💻 Intel Mac detected. Selecting flake: .#${FLAKE_HOST}"
-  else
-    error "Unsupported macOS Architecture: $ARCH"
-  fi
-elif [ "$OS" == "Linux" ]; then
-  FLAKE_HOST="linux-dev"
-  log "🐧 Linux detected. Selecting flake: .#${FLAKE_HOST}"
-else
-  error "Unsupported OS: $OS"
-fi
+FLAKE_HOST="$ARCH-$OS"
+log "Selecting flake: .#${FLAKE_HOST}"
 
 if ! command -v nix &> /dev/null; then
   log "Nix not found. Installing via Determinate Systems..."
