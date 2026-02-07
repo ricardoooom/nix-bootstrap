@@ -111,7 +111,7 @@ if [ "$OS" == "Darwin" ]; then
   log "Step 1: Building system configuration..."
   nix build --extra-experimental-features "nix-command flakes" \
     ".#darwinConfigurations.${FLAKE_HOST}.system"
-  log "Step 2: Activating system (Sudo password required)..."
+  log "Step 2: Activating system (No sudo password required)..."
   ./result/sw/bin/darwin-rebuild switch --flake ".#${FLAKE_HOST}"
 
 elif [ "$OS" == "Linux" ]; then
