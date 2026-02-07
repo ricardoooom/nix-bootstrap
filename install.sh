@@ -112,7 +112,7 @@ if [ "$OS" == "Darwin" ]; then
   nix build --extra-experimental-features "nix-command flakes" \
     ".#darwinConfigurations.${FLAKE_HOST}.system"
   log "Step 2: Activating system (Sudo password required)..."
-  sudo ./result/sw/bin/darwin-rebuild switch --flake ".#${FLAKE_HOST}"
+  ./result/sw/bin/darwin-rebuild switch --flake ".#${FLAKE_HOST}"
 
 elif [ "$OS" == "Linux" ]; then
   log "🐧 Linux detected. Using home-manager to switch..."
