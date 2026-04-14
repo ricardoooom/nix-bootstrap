@@ -29,6 +29,7 @@ log "Detected System: $OS ($ARCH)"
 FLAKE_HOST="$ARCH-$OS"
 log "Selecting flake: .#${FLAKE_HOST}"
 
+# 1. Nix Installation
 if ! command -v nix &> /dev/null; then
   log "Nix not found. Installing via Determinate Systems..."
   curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install --no-confirm
@@ -42,10 +43,24 @@ else
   success "Nix is already installed."
 fi
 
+log "Checking native Rust toolchain..."
+RUST_BIN_DIR="$HOME/.cargo/bin"
+if [ -x "$RUST_BIN_DIR/rustc" ]; then
+  success "Rust is already installed natively."
+else
+  log "Installing Rust natively (unattended, no PATH mutation)..."
+  if curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path; then
+    success "Rust installed successfully."
+  else
+    error "Rust installation failed. Check your network."
+  fi
+fi
+
 mkdir -p "$(dirname "$AGE_KEY_DEST")"
 mkdir -p ~/.ssh
 CLEANUP_KEYS=false
 
+# 2. 1Password & Keys Management
 if command -v op &> /dev/null; then
   log "1Password detected. Processing keys..."
   
@@ -90,6 +105,7 @@ if ! grep -q "github.com" ~/.ssh/known_hosts 2>/dev/null; then
     ssh-keyscan -H github.com >> ~/.ssh/known_hosts 2>/dev/null
 fi
 
+# 3. Git Repository Sync
 if [ -d "$TARGET_DIR" ]; then
   log "Repository exists. Pulling latest..."
   cd "$TARGET_DIR"
@@ -101,6 +117,7 @@ else
   git clone "$REPO_URL" "$TARGET_DIR"
 fi
 
+# 4. Nix Configuration Application
 log "Applying Nix configuration for: .#${FLAKE_HOST}"
 cd "$TARGET_DIR"
 git add .
@@ -121,6 +138,7 @@ elif [ "$OS" == "Linux" ]; then
     home-manager -- switch --flake ".#${FLAKE_HOST}" -b backup
 fi
 
+# 5. Cleanup
 if [ "$CLEANUP_KEYS" = true ]; then
     log "🧹 Cleaning up temporary Bootstrap Keys..."
     rm -f "$BOOTSTRAP_KEY" "${BOOTSTRAP_KEY}.pub"
